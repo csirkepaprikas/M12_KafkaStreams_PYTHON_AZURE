@@ -1331,3 +1331,14 @@ deployment.apps/confluent-operator   1/1     1            1           8m43s
 NAME                                            DESIRED   CURRENT   READY   AGE
 replicaset.apps/confluent-operator-7bc56ff8bf   1         1         1       8m43s
 ```
+Then I authenticated with ACR:
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>az acr login --name acr.azurecr.io
+The login server endpoint suffix '.azurecr.io' is automatically omitted.
+Login Succeeded
+
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>
+```
+
+### Build and push azure-connector into ACR
+
