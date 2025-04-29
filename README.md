@@ -1271,15 +1271,21 @@ Retrieve kubeconfig.yaml and Set It as Default:
 
 Set kubeconfig.yaml as Default for kubectl in Current Terminal Session:
 
-``` Merged "aks-dev-" as current context in C:\Users\mikes\.kube\config ```
+```phyton
+Merged "aks-dev-" as current context in C:\Users\mikes\.kube\config
+```
 Switched to the project kubernetes namespace:
   
-``` c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl config set-context --current --namespace confluent
-    Context "aks-" modified. ```
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl config set-context --current --namespace confluent
+Context "aks-" modified.
+```
 
 Then verified the Kubernetes Cluster Connectivity:
     
-  ```c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl get nodes
+  ```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl get nodes
     NAME                              STATUS   ROLES    AGE    VERSION
-    aks-default-18464414-vmss000000   Ready    <none>   121m   v1.31.7  ```
+    aks-default-18464414-vmss000000   Ready    <none>   121m   v1.31.7
+```
      
