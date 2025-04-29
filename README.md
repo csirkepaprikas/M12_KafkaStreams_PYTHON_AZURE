@@ -1389,6 +1389,30 @@ da7039bb2113: Pushed
 c24709eccb2a: Pushed
 latest: digest: sha256:7a2d2d5dcc4460d6902a4dcb85 size: 856
 ```
+After a few minutes I checked the the cluster initiated properly:
+
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>kubectl get pods -o wide
+NAME                                  READY   STATUS    RESTARTS        AGE     IP             NODE                              NOMINATED NODE   READINESS GATES
+confluent-operator-7bc56ff8bf-mlv6f   1/1     Running   0               10h     10.244.0.166   aks-default-18464414-vmss000000   <none>           <none>
+connect-0                             1/1     Running   0               5m42s   10.244.0.30    aks-default-18464414-vmss000000   <none>           <none>
+controlcenter-0                       1/1     Running   0               3m10s   10.244.0.167   aks-default-18464414-vmss000000   <none>           <none>
+elastic-0                             1/1     Running   4 (4m24s ago)   5m29s   10.244.0.141   aks-default-18464414-vmss000000   <none>           <none>
+kafka-0                               1/1     Running   0               4m27s   10.244.0.101   aks-default-18464414-vmss000000   <none>           <none>
+kafka-1                               1/1     Running   1 (3m44s ago)   4m27s   10.244.0.137   aks-default-18464414-vmss000000   <none>           <none>
+kafka-2                               1/1     Running   0               4m27s   10.244.0.214   aks-default-18464414-vmss000000   <none>           <none>
+ksqldb-0                              1/1     Running   0               3m11s   10.244.0.206   aks-default-18464414-vmss000000   <none>           <none>
+schemaregistry-0                      1/1     Running   0               3m10s   10.244.0.78    aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-0                           1/1     Running   0               5m43s   10.244.0.20    aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-1                           1/1     Running   0               5m43s   10.244.0.35    aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-2                           1/1     Running   0               5m43s   10.244.0.229   aks-default-18464414-vmss000000   <none>           <none>
+```
+Then set up port-forwarding to COntrol Center web UI from local machine:
+```phyton
+PS C:\data_eng\házi\7\m12_kafkastreams_python_azure-master> Start-Process powershell -WindowStyle Hidden -ArgumentList 'kubectl port-forward controlcenter-0 9021:9021 *> $null'
+```
+
+![contcent](https://github.com/user-attachments/assets/1152df25-4e57-4ea6-a677-27854178d68c)
 
 ### Install Confluent Platform
 
