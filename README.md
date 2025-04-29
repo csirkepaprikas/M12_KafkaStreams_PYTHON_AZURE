@@ -1753,8 +1753,85 @@ ksql>     CREATE STREAM expedia_stream (
 ----------------
 ```
 
+Then I created able from stream as select query:
 
+```python
+ksql>    CREATE TABLE hotels_count AS
+>    SELECT
+>        stay_category,
+>        COUNT(hotel_id) AS hotels_amount,
+>        COUNT_DISTINCT(hotel_id) AS distinct_hotels
+>    FROM expedia_stream
+>    GROUP BY stay_category;
+>
 
+ Message
+-------------------------------------------
+ Created query with ID CTAS_HOTELS_COUNT_1
+```
 
+Then I retrieved the total number of hotels (hotel_id) and the number of distinct hotels per category:
 
-
+```python
+ksql> SELECT * FROM hotels_count EMIT CHANGES;
++-------------------------------------------------------------------+-------------------------------------------------------------------+-------------------------------------------------------------------+
+|STAY_CATEGORY                                                      |HOTELS_AMOUNT                                                      |DISTINCT_HOTELS                                                    |
++-------------------------------------------------------------------+-------------------------------------------------------------------+-------------------------------------------------------------------+
+|Erroneous data                                                     |61                                                                 |61                                                                 |
+|Standard extended stay                                             |267                                                                |246                                                                |
+|Short stay                                                         |40552                                                              |2486                                                               |
+|Long stay                                                          |117                                                                |115                                                                |
+|Standard stay                                                      |4528                                                               |2051                                                               |
+|Long stay                                                          |118                                                                |116                                                                |
+|Standard stay                                                      |4536                                                               |2052                                                               |
+|Standard stay                                                      |4547                                                               |2052                                                               |
+|Standard stay                                                      |4572                                                               |2055                                                               |
+|Standard extended stay                                             |269                                                                |248                                                                |
+|Standard stay                                                      |4575                                                               |2055                                                               |
+|Short stay                                                         |41185                                                              |2486                                                               |
+|Standard stay                                                      |4583                                                               |2056                                                               |
+|Short stay                                                         |41511                                                              |2486                                                               |
+|Standard extended stay                                             |273                                                                |252                                                                |
+|Long stay                                                          |119                                                                |117                                                                |
+|Standard stay                                                      |4636                                                               |2065                                                               |
+|Short stay                                                         |41734                                                              |2486                                                               |
+|Standard extended stay                                             |276                                                                |255                                                                |
+|Long stay                                                          |120                                                                |118                                                                |
+|Standard stay                                                      |4667                                                               |2068                                                               |
+|Short stay                                                         |42012                                                              |2486                                                               |
+|Standard extended stay                                             |278                                                                |257                                                                |
+|Long stay                                                          |122                                                                |120                                                                |
+|Standard stay                                                      |4698                                                               |2076                                                               |
+|Short stay                                                         |42324                                                              |2486                                                               |
+|Long stay                                                          |123                                                                |121                                                                |
+|Standard stay                                                      |4739                                                               |2085                                                               |
+|Short stay                                                         |42512                                                              |2486                                                               |
+|Standard extended stay                                             |280                                                                |259                                                                |
+|Long stay                                                          |124                                                                |122                                                                |
+|Standard stay                                                      |4756                                                               |2088                                                               |
+|Short stay                                                         |42589                                                              |2486                                                               |
+|Standard extended stay                                             |281                                                                |260                                                                |
+|Long stay                                                          |128                                                                |126                                                                |
+|Standard stay                                                      |4813                                                               |2099                                                               |
+|Short stay                                                         |42885                                                              |2486                                                               |
+|Standard extended stay                                             |283                                                                |262                                                                |
+|Erroneous data                                                     |62                                                                 |62                                                                 |
+|Long stay                                                          |133                                                                |132                                                                |
+|Standard stay                                                      |4856                                                               |2107                                                               |
+|Short stay                                                         |43256                                                              |2486                                                               |
+|Erroneous data                                                     |64                                                                 |64                                                                 |
+|Standard extended stay                                             |285                                                                |264                                                                |
+|Short stay                                                         |43773                                                              |2486                                                               |
+|Standard extended stay                                             |289                                                                |268                                                                |
+|Long stay                                                          |135                                                                |133                                                                |
+|Standard stay                                                      |4925                                                               |2123                                                               |
+|Short stay                                                         |44175                                                              |2486                                                               |
+|Erroneous data                                                     |65                                                                 |64                                                                 |
+|Standard extended stay                                             |292                                                                |271                                                                |
+|Long stay                                                          |136                                                                |134                                                                |
+|Standard stay                                                      |4975                                                               |2126                                                               |
+|Short stay                                                         |44811                                                              |2486                                                               |
+|Erroneous data                                                     |66                                                                 |65                                                                 |
+|Standard extended stay                                             |297                                                                |276                                                                |
+|Long stay                                                          |143                                                                |141                                                                |
+```
