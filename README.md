@@ -1484,6 +1484,17 @@ Then modified the file /terraform/azure-source-cc.json:
 }
 ```
 
+Then uploaded the connector file through the API:
+
+```phyton
+PS C:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform> curl -s -X POST -H "Content-Type:application/json" --data @azure-source-cc.json http://localhost:8083/connectors
+{"name":"expedia","config":{"topics":"expedia","bootstrap.servers":"kafka:9071","connector.class":"io.confluent.connect.azure.blob.storage.AzureBlobStorageSourceConnector","tasks.max":"2","topics.dir":"root","format.class":"io.confluent.connect.azure.blob.storage.format.avro.AvroFormat","azblob.account.name":"dev","azblob.account.key":"","azblob.container.name":"data","azblob.retry.retries":"3","transforms":"mask_date","transforms.mask_date.type":"org.apache.kafka.connect.transforms.MaskField$Value","transforms.mask_date.fields":"date_time","transforms.mask_date.replacement":"0000-00-00 00:00:00","name":"expedia"},"tasks":[],"type":"source"}
+PS C:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>
+```
+Then verified the messages in the Kafka in the Control Center:
+
+![messages](https://github.com/user-attachments/assets/608e5bc9-8656-434a-98e3-60af9f677614)
+
 
 
 
