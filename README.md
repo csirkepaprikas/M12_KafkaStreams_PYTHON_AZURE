@@ -1702,5 +1702,59 @@ zookeeper-1                           1/1     Running   0             68m   10.2
 zookeeper-2                           1/1     Running   0             68m   10.244.0.229   aks-default-18464414-vmss000000   <none>           <none>
 ```
 
+Then I verified the messages in the Control Center's Topic menu, by the expedia_ext topic:
+
+![exp_ext_messa](https://github.com/user-attachments/assets/9a6036af-9755-4144-a268-7c36d9d3e6c2)
+
+### Visualize Data from Kafka Topic expedia_ext with KSQL
+
+Then started by running the following command to access the KSQL command prompt:
+
+```python
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>kubectl exec -it ksqldb-0 -- ksql
+Defaulted container "ksqldb" out of: ksqldb, config-init-container (init)
+WARNING: Unable to create command history file '/home/appuser/?/.ksql-history', command history will not be saved.
+
+                  ===========================================
+                  =       _              _ ____  ____       =
+                  =      | | _____  __ _| |  _ \| __ )      =
+                  =      | |/ / __|/ _` | | | | |  _ \      =
+                  =      |   <\__ \ (_| | | |_| | |_) |     =
+                  =      |_|\_\___/\__, |_|____/|____/      =
+                  =                   |_|                   =
+                  =        The Database purpose-built       =
+                  =        for stream processing apps       =
+                  ===========================================
+
+Copyright 2017-2022 Confluent Inc.
+
+CLI v7.8.0, Server v7.8.0 located at http://localhost:8088
+Server Status: RUNNING
+
+Having trouble? Type 'help' (case-insensitive) for a rundown of how things work!
+```
+
+I was redirected in KSQL command promt, where I created a stream from expedia_ext topic:
+
+```python
+ksql>     CREATE STREAM expedia_stream (
+>        id BIGINT,
+>        hotel_id BIGINT,
+>        stay_category VARCHAR
+>    ) WITH (
+>        KAFKA_TOPIC='expedia_ext',
+>        VALUE_FORMAT='JSON'
+>    );
+>
+
+ Message
+----------------
+ Stream created
+----------------
+```
+
+
+
+
 
 
