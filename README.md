@@ -1407,23 +1407,39 @@ zookeeper-0                           1/1     Running   0               5m43s   
 zookeeper-1                           1/1     Running   0               5m43s   10.244.0.35    aks-default-18464414-vmss000000   <none>           <none>
 zookeeper-2                           1/1     Running   0               5m43s   10.244.0.229   aks-default-18464414-vmss000000   <none>           <none>
 ```
-Then set up port-forwarding to COntrol Center web UI from local machine:
-```phyton
-PS C:\data_eng\házi\7\m12_kafkastreams_python_azure-master> Start-Process powershell -WindowStyle Hidden -ArgumentList 'kubectl port-forward controlcenter-0 9021:9021 *> $null'
-```
-
-![contcent](https://github.com/user-attachments/assets/1152df25-4e57-4ea6-a677-27854178d68c)
 
 ### Install Confluent Platform
 
 Gone into root folder. Modified the file confluent-platform.yaml and replace the placeholder with actual value.
 Then installed all Confluent Platform components:
 
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>kubectl apply -f confluent-platform.yaml
+zookeeper.platform.confluent.io/zookeeper created
+kafka.platform.confluent.io/kafka created
+connect.platform.confluent.io/connect created
+ksqldb.platform.confluent.io/ksqldb created
+controlcenter.platform.confluent.io/controlcenter created
+schemaregistry.platform.confluent.io/schemaregistry created
+```
+
 Then installed a sample producer app and topic:
 
-Set up port forwarding to Control Center web UI from local machine:
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>kubectl apply -f producer-app-data.yaml
+secret/kafka-client-config created
+statefulset.apps/elastic created
+service/elastic created
+kafkatopic.platform.confluent.io/elastic-0 created
+```
 
-Then I browsed to Control Center: http://localhost:9021:
+Then set up port-forwarding to COntrol Center web UI from local machine:
+
+```phyton
+PS C:\data_eng\házi\7\m12_kafkastreams_python_azure-master> Start-Process powershell -WindowStyle Hidden -ArgumentList 'kubectl port-forward controlcenter-0 9021:9021 *> $null'
+```
+
+![contcent](https://github.com/user-attachments/assets/1152df25-4e57-4ea6-a677-27854178d68c)
 
 ###  Create a kafka topic
 
