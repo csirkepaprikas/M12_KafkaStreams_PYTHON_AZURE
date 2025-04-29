@@ -1495,7 +1495,212 @@ Then verified the messages in the Kafka in the Control Center:
 
 ![messages](https://github.com/user-attachments/assets/608e5bc9-8656-434a-98e3-60af9f677614)
 
+Then created an output kafka topic:
 
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>kubectl exec kafka-0 -c kafka -- bash -c "/usr/bin/kafka-topics --create --topic expedia_ext --replication-factor 3 --partitions 3 --bootstrap-server kafka:9092"
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic expedia_ext.
+
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>
+```
+
+### Deploy Stream application
+
+Verified the Kafka topic names in the /src/main.py:
+
+```phyton
+import datetime
+from dateutil.parser import parse as parse_date
+import faust
+import logging
+
+
+class ExpediaRecord(faust.Record):
+    id: float
+    date_time: str
+    site_name: int
+    posa_container: int
+    user_location_country: int
+    user_location_region: int
+    user_location_city: int
+    orig_destination_distance: float
+    user_id: int
+    is_mobile: int
+    is_package: int
+    channel: int
+    srch_ci: str
+    srch_co: str
+    srch_adults_cnt: int
+    srch_children_cnt: int
+    srch_rm_cnt: int
+    srch_destination_id: int
+    srch_destination_type_id: int
+    hotel_id: int
+
+
+class ExpediaExtRecord(ExpediaRecord):
+    stay_category: str
+
+
+logger = logging.getLogger(__name__)
+app = faust.App('kafkastreams', broker='kafka://kafka:9092')
+source_topic = app.topic('expedia', value_type=ExpediaRecord)
+destination_topic = app.topic('expedia_ext', value_type=ExpediaExtRecord)
+
+
+@app.agent(source_topic, sink=[destination_topic])
+async def handle(messages):
+    async for message in messages:
+        if message is None:
+            logger.info('No messages')
+            continue
+
+        data = {
+            'id': message.id,
+            'date_time': message.date_time,
+            'site_name': message.site_name,
+            'posa_container': message.posa_container,
+            'user_location_country': message.user_location_country,
+            'user_location_region': message.user_location_region,
+            'user_location_city': message.user_location_city,
+            'orig_destination_distance': message.orig_destination_distance,
+            'user_id': message.user_id,
+            'is_mobile': message.is_mobile,
+            'is_package': message.is_package,
+            'channel': message.channel,
+            'srch_ci': message.srch_ci,
+            'srch_co': message.srch_co,
+            'srch_adults_cnt': message.srch_adults_cnt,
+            'srch_children_cnt': message.srch_children_cnt,
+            'srch_rm_cnt': message.srch_rm_cnt,
+            'srch_destination_id': message.srch_destination_id,
+            'srch_destination_type_id': message.srch_destination_type_id,
+            'hotel_id': message.hotel_id
+        }
+
+        # Set default value for stay category
+        stay_category = 'Erroneous data'
+
+        try:
+            # Parse check-in and check-out dates. All incorrect values is filtering
+            # on this stage
+            check_in = parse_date(message.srch_ci)
+            check_out = parse_date(message.srch_co)
+
+        except:
+            yield ExpediaExtRecord(**data, stay_category=stay_category)
+
+        # Calculate the duration in days
+        duration = (check_out - check_in).days
+
+        # Determine stay category for correct dates
+        if 1 <= duration <=4:
+            stay_category = 'Short stay'
+        elif 5 <= duration <= 10:
+            stay_category = 'Standard stay'
+        elif 11 <= duration <= 14:
+            stay_category = 'Standard extended stay'
+        elif duration > 14:
+            stay_category = 'Long stay'
+
+        yield ExpediaExtRecord(**data, stay_category=stay_category)
+
+
+if __name__ == '__main__':
+    app.main()
+```
+
+Then built the stram-app docker image:
+
+```python
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>docker build -t ac.azurecr.io/stream-app:latest .
+[+] Building 106.4s (11/11) FINISHED                                                                                                                                                        docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                                                                        0.1s
+ => => transferring dockerfile: 286B                                                                                                                                                                        0.0s
+ => [internal] load metadata for docker.io/library/python:3.9                                                                                                                                               2.3s
+ => [internal] load .dockerignore                                                                                                                                                                           0.1s
+ => => transferring context: 2B                                                                                                                                                                             0.0s
+ => [1/6] FROM docker.io/library/python:3.9@sha256:5e936c602d41bc50a5de796d8f6ce6a223faffffe36445838ead2255b1c0699b                                                                                        65.9s
+ => => resolve docker.io/library/python:3.9@sha256:5e936c602d41bc50a5de796d8f6ce6a223faffffe36445838ead2255b1c0699b                                                                                         0.1s
+ => => sha256:c11e4fe34802ddc4646a0639eb778393c0823872b9dd0df5fd00e0618a47b28b 250B / 250B                                                                                                                  0.2s
+ => => sha256:80b896d41308c2d1ff108791b7714ed106ae72c1f9a8a9afe4e8e3041a9468c2 19.85MB / 19.85MB                                                                                                            6.0s
+ => => sha256:992bfc873aeeccec61984e5cf95389f133ec6a19e3513c799c1d47dee4fbe62e 6.16MB / 6.16MB                                                                                                              3.8s
+ => => sha256:c187b51b626e1d60ab369727b81f440adea9d45e97a45e137fc318be0bb7f09f 211.36MB / 211.36MB                                                                                                         46.2s
+ => => sha256:ca513cad200b13ead2c745498459eed58a6db3480e3ba6117f854da097262526 64.39MB / 64.39MB                                                                                                           31.7s
+ => => sha256:63964a8518f54dc31f8df89d7f06714c7a793aa1aa08a64ae3d7f4f4f30b4ac8 24.01MB / 24.01MB                                                                                                           15.9s
+ => => sha256:cf05a52c02353f0b2b6f9be0549ac916c3fb1dc8d4bacd405eac7f28562ec9f2 48.49MB / 48.49MB                                                                                                           21.3s
+ => => extracting sha256:cf05a52c02353f0b2b6f9be0549ac916c3fb1dc8d4bacd405eac7f28562ec9f2                                                                                                                  18.9s
+ => => extracting sha256:63964a8518f54dc31f8df89d7f06714c7a793aa1aa08a64ae3d7f4f4f30b4ac8                                                                                                                   2.1s
+ => => extracting sha256:ca513cad200b13ead2c745498459eed58a6db3480e3ba6117f854da097262526                                                                                                                   4.3s
+ => => extracting sha256:c187b51b626e1d60ab369727b81f440adea9d45e97a45e137fc318be0bb7f09f                                                                                                                  11.1s
+ => => extracting sha256:992bfc873aeeccec61984e5cf95389f133ec6a19e3513c799c1d47dee4fbe62e                                                                                                                   0.4s
+ => => extracting sha256:80b896d41308c2d1ff108791b7714ed106ae72c1f9a8a9afe4e8e3041a9468c2                                                                                                                   1.1s
+ => => extracting sha256:c11e4fe34802ddc4646a0639eb778393c0823872b9dd0df5fd00e0618a47b28b                                                                                                                   0.1s
+ => [internal] load build context                                                                                                                                                                           0.2s
+ => => transferring context: 3.72kB                                                                                                                                                                         0.0s
+ => [2/6] ADD src/main.py /app/main.py                                                                                                                                                                      1.3s
+ => [3/6] ADD requirements.txt /app/requirements.txt                                                                                                                                                        0.1s
+ => [4/6] WORKDIR /app                                                                                                                                                                                      0.1s
+ => [5/6] RUN apt-get update && apt-get install -y     gcc                                                                                                                                                  8.3s
+ => [6/6] RUN pip3 install -r requirements.txt                                                                                                                                                             20.7s
+ => exporting to image                                                                                                                                                                                      7.0s
+ => => exporting layers                                                                                                                                                                                     5.0s
+ => => exporting manifest sha256:d1647a6a2ac80cb32fe7095ccf6760a077cad57070b84506d62bf2157c930443                                                                                                           0.0s
+ => => exporting config sha256:90927672a3cec7d7ab5fdcb08b61a430f2ebf381b91aefd3c6119b047adc772d                                                                                                             0.1s
+ => => exporting attestation manifest sha256:a8129240dc44a6c926be03af27376e20e410cc7dba267f9f78864493ac924916                                                                                               0.1s
+ => => exporting manifest list sha256:40b04f8080746fc0fdc0ead90c1dca3c7a00cd0a57b5dc8055dc87c65d124bc7                                                                                                      0.0s
+ => => naming to acr.azurecr.io/stream-app:latest                                                                                                                                      0.0s
+ => => unpacking to acr.azurecr.io/stream-app:latest  
+```
+
+And pushed it to the ACR:
+
+```python
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>docker push ac.azurecr.io/stream-app:latest
+The push refers to repository [acr.azurecr.io/stream-app]
+47e60730f87f: Pushed
+80b896d41308: Pushed
+c11e4fe34802: Pushed
+ca513cad200b: Pushed
+e160e3bbfa68: Pushed
+4f4fb700ef54: Pushed
+3b4c279150f1: Pushed
+53ac2a08907c: Pushed
+cf05a52c0235: Pushed
+63964a8518f5: Pushed
+c187b51b626e: Pushed
+c7ee4621ffc6: Pushed
+992bfc873aee: Pushed
+latest: digest: sha256:40b04f8080746fc0fdc0ead90c1dca3c7a00cd0a57b5dc8055dc87c65d124bc7 size: 856
+```
+
+Part of the deploying Stream Application into AKS, I modified the stram-app.yaml's image related row, then deployed it:
+
+```python
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>kubectl apply -f stream-app.yaml
+deployment.apps/kstream-app created
+```
+
+As you can see it was deployed properly into the cluster:
+
+```python
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>kubectl get pods -o wide
+NAME                                  READY   STATUS    RESTARTS      AGE   IP             NODE                              NOMINATED NODE   READINESS GATES
+confluent-operator-7bc56ff8bf-mlv6f   1/1     Running   0             11h   10.244.0.166   aks-default-18464414-vmss000000   <none>           <none>
+connect-0                             1/1     Running   0             68m   10.244.0.30    aks-default-18464414-vmss000000   <none>           <none>
+controlcenter-0                       1/1     Running   0             23m   10.244.0.219   aks-default-18464414-vmss000000   <none>           <none>
+elastic-0                             1/1     Running   4 (66m ago)   68m   10.244.0.141   aks-default-18464414-vmss000000   <none>           <none>
+kafka-0                               1/1     Running   0             67m   10.244.0.101   aks-default-18464414-vmss000000   <none>           <none>
+kafka-1                               1/1     Running   1 (66m ago)   67m   10.244.0.137   aks-default-18464414-vmss000000   <none>           <none>
+kafka-2                               1/1     Running   0             67m   10.244.0.214   aks-default-18464414-vmss000000   <none>           <none>
+ksqldb-0                              1/1     Running   0             65m   10.244.0.206   aks-default-18464414-vmss000000   <none>           <none>
+kstream-app-7b74bf575d-sx62n          1/1     Running   0             23s   10.244.0.143   aks-default-18464414-vmss000000   <none>           <none>
+schemaregistry-0                      1/1     Running   0             65m   10.244.0.78    aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-0                           1/1     Running   0             68m   10.244.0.20    aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-1                           1/1     Running   0             68m   10.244.0.35    aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-2                           1/1     Running   0             68m   10.244.0.229   aks-default-18464414-vmss000000   <none>           <none>
+```
 
 
 
