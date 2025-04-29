@@ -1267,3 +1267,15 @@ Also checked zhe resources in the Azure portal:
 
 Also the "azure-source-cc.json" was created successfully.
 
+Retrieve kubeconfig.yaml and Set It as Default:
+
+  1. Set kubeconfig.yaml as Default for kubectl in Current Terminal Session:
+     ```python Merged "aks-dev-" as current context in C:\Users\mikes\.kube\config ```
+  2. Switched to the project kubernetes namespace:
+     ```python c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl config set-context --current --namespace confluent
+    Context "aks-" modified. ```
+    Then verified the Kubernetes Cluster Connectivity:
+    ```python c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl get nodes
+    NAME                              STATUS   ROLES    AGE    VERSION
+    aks-default-18464414-vmss000000   Ready    <none>   121m   v1.31.7 ```
+     
