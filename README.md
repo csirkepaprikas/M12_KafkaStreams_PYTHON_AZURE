@@ -1443,4 +1443,48 @@ PS C:\data_eng\házi\7\m12_kafkastreams_python_azure-master> Start-Process power
 
 ###  Create a kafka topic
 
+The topic should have at least 3 partitions because the azure blob storage has 3 partitions. Name the new topic: expedia.
+
+Created a connection for kafka:
+
+```phyton
+PS C:\data_eng\házi\7\m12_kafkastreams_python_azure-master> Start-Process powershell -WindowStyle Hidden -ArgumentList 'kubectl port-forward connect-0 8083:8083 *> $null'
+```
+Then created Kafka topic with a name 'expedia':
+
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master>kubectl exec kafka-0 -c kafka -- bash -c "/usr/bin/kafka-topics --create --topic expedia --replication-factor 3 --partitions 3 --bootstrap-server kafka:9092"
+Created topic expedia.
+```
+Then uploaded the data files into Azure Conatainers:
+
+![topics_uploaded](https://github.com/user-attachments/assets/e634b82f-2068-40b5-be6a-79289ad33c5d)
+
+Then modified the file /terraform/azure-source-cc.json:
+
+```phyton
+{
+"name": "expedia",
+  "config": {
+    "topics": "expedia",
+    "bootstrap.servers": "kafka:9071",
+    "connector.class": "io.confluent.connect.azure.blob.storage.AzureBlobStorageSourceConnector",
+    "tasks.max": "2",
+    "topics.dir": "root",
+    "format.class": "io.confluent.connect.azure.blob.storage.format.avro.AvroFormat",
+    "azblob.account.name": "",
+    "azblob.account.key": "",
+    "azblob.container.name": "data",
+    "azblob.retry.retries": "3",
+    "transforms": "mask_date",
+    "transforms.mask_date.type": "org.apache.kafka.connect.transforms.MaskField$Value",
+    "transforms.mask_date.fields": "date_time",
+    "transforms.mask_date.replacement": "0000-00-00 00:00:00"
+  }
+}
+```
+
+
+
+
 
