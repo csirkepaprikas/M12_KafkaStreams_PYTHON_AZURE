@@ -1265,3 +1265,5 @@ Also checked zhe resources in the Azure portal:
 
 ![rd_dev_ins](https://github.com/user-attachments/assets/3fffde42-78ca-43ac-986a-b1d5265958af)
 
+Also the "azure-source-cc.json" was created successfully.
+
