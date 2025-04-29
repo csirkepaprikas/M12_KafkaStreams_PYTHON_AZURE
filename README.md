@@ -1342,3 +1342,65 @@ c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>
 
 ### Build and push azure-connector into ACR
 
+```phyton
+Builded the Docker image:
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\connectors>docker build -t acr.azurecr.io/azure-connector:latest .
+[+] Building 2.1s (7/7) FINISHED                                                                                                                                                            docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                                                                        0.0s
+ => => transferring dockerfile: 306B                                                                                                                                                                        0.0s
+ => [internal] load metadata for docker.io/confluentinc/cp-server-connect:7.6.0                                                                                                                             1.5s
+ => [internal] load .dockerignore                                                                                                                                                                           0.0s
+ => => transferring context: 2B                                                                                                                                                                             0.0s
+ => [1/3] FROM docker.io/confluentinc/cp-server-connect:7.6.0@sha256:0ea4d                                                                       0.0s
+ => => resolve docker.io/confluentinc/cp-server-connect:7.6.0@sha256:0bf9b70cc89a2dcdd9c57d2d1505c8c2ea4d                                                                       0.0s
+ => CACHED [2/3] RUN confluent-hub install --no-prompt confluentinc/kafka-connect-azure-blob-storage:latest                                                                                                 0.0s
+ => CACHED [3/3] RUN confluent-hub install --no-prompt confluentinc/kafka-connect-azure-blob-storage-source:latest                                                                                          0.0s
+ => exporting to image                                                                                                                                                                                      0.3s
+ => => exporting layers                                                                                                                                                                                     0.0s
+ => => exporting manifest sha256:87ca0260cfdcd056f267803844e8749ad2ae16bb7d141870111626f432d97bfe                                                                                                           0.0s
+ => => exporting config sha256:375d7db90c39b010366d8ee41dfd26469afd5e94c2672f4008568edf5e5ba1b5                                                                                                             0.0s
+ => => exporting attestation manifest sha256:55e801d4d57fd000ae9bb0578282535cd14832c926f9383eb032d26a92491caa                                                                                               0.1s
+ => => exporting manifest list sha256:7a2dfaed6988e53b5afeb9ddaa18a46af8539eea3b2d5dcc4460d6902a4dcb85                                                                                                      0.0s
+ => => naming to accr.io/azure-connector:latest                                                                                                                                 0.0s
+ => => unpacking to acr.io/azure-connector:latest                                                                                                                              0.0s
+```
+
+Then pushed it to the ACR:
+
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\connectors>docker push a.azurecr.io/azure-connector
+Using default tag: latest
+The push refers to repository [acr.io/azure-connector]
+f3e34be17d64: Pushed
+0e55377ebe37: Pushed
+4250354b4fb7: Pushed
+d389b3791c2e: Pushed
+5420596c14ab: Pushed
+17fe3a92262f: Pushed
+003d908e509f: Pushed
+ddfc5620ff70: Pushed
+c4c5f447179d: Pushed
+974e7e336459: Pushed
+fe36fc382320: Pushed
+8fba90d6dcbd: Pushed
+a266312a92ef: Pushed
+186e9837369c: Pushed
+da7039bb2113: Pushed
+c24709eccb2a: Pushed
+latest: digest: sha256:7a2d2d5dcc4460d6902a4dcb85 size: 856
+```
+
+### Install Confluent Platform
+
+Gone into root folder. Modified the file confluent-platform.yaml and replace the placeholder with actual value.
+Then installed all Confluent Platform components:
+
+Then installed a sample producer app and topic:
+
+Set up port forwarding to Control Center web UI from local machine:
+
+Then I browsed to Control Center: http://localhost:9021:
+
+###  Create a kafka topic
+
+
