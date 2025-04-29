@@ -1315,3 +1315,19 @@ The Confluent Operator brings the component (Confluent Services) specific contro
 Definition (CRD) as well as managing other Confluent Platform services
  ```
 
+Created resource list:
+
+```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl get all -n confluent
+NAME                                      READY   STATUS    RESTARTS   AGE
+pod/confluent-operator-7bc56ff8bf-mlv6f   1/1     Running   0          8m42s
+
+NAME                         TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+service/confluent-operator   ClusterIP   10.0.251.102   <none>        7778/TCP   8m42s
+
+NAME                                 READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/confluent-operator   1/1     1            1           8m43s
+
+NAME                                            DESIRED   CURRENT   READY   AGE
+replicaset.apps/confluent-operator-7bc56ff8bf   1         1         1       8m43s
+```
