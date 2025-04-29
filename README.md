@@ -1267,7 +1267,7 @@ Also checked zhe resources in the Azure portal:
 
 Also the "azure-source-cc.json" was created successfully.
 
-Retrieve kubeconfig.yaml and Set It as Default:
+### Retrieve kubeconfig.yaml and Set It as Default:
 
 Set kubeconfig.yaml as Default for kubectl in Current Terminal Session:
 
@@ -1288,4 +1288,30 @@ c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl get n
     NAME                              STATUS   ROLES    AGE    VERSION
     aks-default-18464414-vmss000000   Ready    <none>   121m   v1.31.7
 ```
-     
+
+Install Confluent for Kubernetes by added the Confluent for Kubernetes Helm repository:
+
+ ```phyton
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>helm repo add confluentinc https://packages.confluent.io/helm
+"confluentinc" already exists with the same configuration, skipping
+
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "confluentinc" chart repository
+Update Complete. ⎈Happy Helming!⎈
+
+c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>helm upgrade --install confluent-operator confluentinc/confluent-for-kubernetes
+Release "confluent-operator" does not exist. Installing it now.
+NAME: confluent-operator
+LAST DEPLOYED: Tue Apr 29 10:54:14 2025
+NAMESPACE: confluent
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+The Confluent Operator
+
+The Confluent Operator brings the component (Confluent Services) specific controllers for kubernetes by providing components specific Custom Resource
+Definition (CRD) as well as managing other Confluent Platform services
+ ```
+
