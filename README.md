@@ -1275,7 +1275,7 @@ Retrieve kubeconfig.yaml and Set It as Default:
      ```
   3. Switched to the project kubernetes namespace:
      ```python
-     c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl config set-context --current --namespace confluent
+    c:\data_eng\házi\7\m12_kafkastreams_python_azure-master\terraform>kubectl config set-context --current --namespace confluent
     Context "aks-" modified. 
     ```
     Then verified the Kubernetes Cluster Connectivity:
