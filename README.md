@@ -1835,3 +1835,4 @@ ksql> SELECT * FROM hotels_count EMIT CHANGES;
 |Standard extended stay                                             |297                                                                |276                                                                |
 |Long stay                                                          |143                                                                |141                                                                |
 ```
+
