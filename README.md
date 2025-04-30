@@ -1753,7 +1753,7 @@ ksql>     CREATE STREAM expedia_stream (
 ----------------
 ```
 
-Then I created able from stream as select query:
+Then I created a table from stream as select query:
 
 ```python
 ksql>    CREATE TABLE hotels_count AS
@@ -1836,3 +1836,6 @@ ksql> SELECT * FROM hotels_count EMIT CHANGES;
 |Long stay                                                          |143                                                                |141                                                                |
 ```
 
+Then I checked the stream topology in the Flow vizualization:
+
+![flow](https://github.com/user-attachments/assets/b5044d69-91e5-4dd8-9a8d-838bec77e8f2)
