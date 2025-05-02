@@ -1886,11 +1886,11 @@ push_con: build login
 	docker push $(FULL_IMAGE_CON)
 	
 # Build image_kstr
-build_con:
+build_kstr:
 	docker build -t $(FULL_IMAGE_KSTR) .
 
 # Push kstr_image to ACR
-push_con: build login
+push_kstr: build login
 	docker push $(FULL_IMAGE_KSTR)
 
 
@@ -2019,4 +2019,37 @@ PS C:\data_eng\házi\7\ci_cd>
 
 ![cicd_data](https://github.com/user-attachments/assets/6e1f4fa0-4d59-44d1-aad7-c2e0c6bfa068)
 
+
+Then I loddeg in to the ACR:
+```python
+PS C:\data_eng\házi\7\ci_cd> make login
+az acr login --name acr
+Login Succeeded
+PS C:\data_eng\házi\7\ci_cd
+```
+
+And builded the Connector's image:
+```python
+PS C:\data_eng\házi\7\ci_cd> make build_con
+docker build -t acr.azurecr.io/azure-connector:latest -f connectors/Dockerfile .
+[+] Building 2.0s (7/7) FINISHED                                                                                                       docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                   0.0s
+ => => transferring dockerfile: 306B                                                                                                                   0.0s
+ => [internal] load metadata for docker.io/confluentinc/cp-server-connect:7.6.0                                                                        1.3s
+ => [internal] load .dockerignore                                                                                                                      0.0s
+ => => transferring context: 2B                                                                                                                        0.0s
+ => [1/3] FROM docker.io/confluentinc/cp-server-connect:7.6.0@sha256:0bf9b70cc89a2dcdd9c57d2d92129dfbb012690a3323f4c4e92d1505c8c2ea4d                  0.1s
+ => => resolve docker.io/confluentinc/cp-server-connect:7.6.0@sha256:0bf9b70cc89a2dcdd9c57d2d92129dfbb012690a3323f4c4e92d1505c8c2ea4d                  0.0s
+ => CACHED [2/3] RUN confluent-hub install --no-prompt confluentinc/kafka-connect-azure-blob-storage:latest                                            0.0s
+ => CACHED [3/3] RUN confluent-hub install --no-prompt confluentinc/kafka-connect-azure-blob-storage-source:latest                                     0.0s
+ => exporting to image                                                                                                                                 0.3s
+ => => exporting layers                                                                                                                                0.0s
+ => => exporting manifest sha256:87ca0260cfdcd056f267803844e8749ad2ae16bb7d141870111626f432d97bfe                                                      0.0s
+ => => exporting config sha256:375d7db90c39b010366d8ee41dfd26469afd5e94c2672f4008568edf5e5ba1b5                                                        0.0s
+ => => exporting attestation manifest sha256:661fe0cb96daffeb6da663b8cbd44526cb930bd2fac7b3d20c8ac3e8c6a40ed5                                          0.1s
+ => => exporting manifest list sha256:029bea512876172a6df04c1f37a8be6af1e9acbeafdf35a5429e8a16b9205ede                                                 0.0s
+ => => naming to acr.azurecr.io/azure-connector:latest                                                                            0.0s
+ => => unpacking to acrazurecr.io/azure-connector:latest                                                                         0.0s
+PS C:\data_eng\házi\7\ci_cd>
+```
 
