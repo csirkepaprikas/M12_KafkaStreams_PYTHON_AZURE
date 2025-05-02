@@ -1839,3 +1839,184 @@ ksql> SELECT * FROM hotels_count EMIT CHANGES;
 Then I checked the stream topology in the Flow vizualization:
 
 ![flow](https://github.com/user-attachments/assets/b5044d69-91e5-4dd8-9a8d-838bec77e8f2)
+
+### CI/CD
+
+For CI/CD tasks were written in a Makefile - and the realted secrets in the secrets.env file - and the execution was carried out in PowerShell. For stream the stream and table creation and the task query I applied API calls.
+
+The actual Makefile:
+
+```python
+# Makefile
+include secrets.env
+export
+
+
+IMAGE_NAME_CON = azure-connector
+IMAGE_NAME_KSTR = stream-app
+TAG = latest
+FULL_IMAGE_CON = $(ACR_NAME).azurecr.io/$(IMAGE_NAME_CON):$(TAG)
+FULL_IMAGE_KSTR = $(ACR_NAME).azurecr.io/$(IMAGE_NAME_KSTR):$(TAG)
+CONTAINER = data
+
+# YAML files' path
+CONFLUENT_YAML = k8s/confluent-platform.yaml
+PRODUCER_YAML = k8s/producer-app-data.yaml
+STREAM_APP_YAML = k8s/stream-app.yaml
+
+upload-dir:
+	az storage blob upload-batch \
+		--account-name $(STORAGE_ACCOUNT) \
+		--destination $(CONTAINER) \
+		--source . \
+		--pattern "root_cicd/*"
+
+
+# Login to Azure and ACR
+login:
+	az acr login --name $(ACR_NAME)
+
+
+# Build image_con
+build_con:
+	docker build -t $(FULL_IMAGE_CON) -f connectors/Dockerfile .
+
+# Push con_image to ACR
+push_con: build login
+	docker push $(FULL_IMAGE_CON)
+	
+# Build image_kstr
+build_con:
+	docker build -t $(FULL_IMAGE_KSTR) .
+
+# Push kstr_image to ACR
+push_con: build login
+	docker push $(FULL_IMAGE_KSTR)
+
+
+# Confluent deployment
+deploy-confluent:
+	kubectl apply -f $(CONFLUENT_YAML)
+
+# Producer-app deployment
+deploy-producer:
+	kubectl apply -f $(PRODUCER_YAML)	
+
+# Confluent deletion
+delete-confluent:
+	kubectl delete -f $(CONFLUENT_YAML) 
+
+# Producer-app deletion
+delete-producer:
+	kubectl delete -f $(PRODUCER_YAML)	
+	
+# Status verification
+status:
+	kubectl get pods -o wide  
+	
+	
+# Port forward Control Center
+port-forward-controlcenter:
+	Start-Process powershell -WindowStyle Hidden -ArgumentList 'kubectl port-forward controlcenter-0 9021:9021 *> $null'
+
+
+# Port forward Kafka Connect
+port-forward-connect:
+	Start-Process powershell -WindowStyle Hidden -ArgumentList 'kubectl port-forward connect-0 8083:8083 *> $null'
+
+# Kafka topic creation (expedia)
+create-topic:
+	kubectl exec kafka-0 -c kafka -- bash -c "/usr/bin/kafka-topics --create --topic expedia --replication-factor 3 --partitions 3 --bootstrap-server kafka:9092"
+
+# Delete alias
+fix-curl:
+	Remove-Item alias:curl -Force
+
+# Kafka Connect connector upload from JSON file
+upload-connector:
+	powershell -Command "Invoke-RestMethod -Method Post -Uri http://localhost:8083/connectors -ContentType 'application/json' -Body (Get-Content -Raw -Path azure-source-cc.json)"
+	
+# Create an output kafka topic
+output-topic:
+	kubectl exec kafka-0 -c kafka -- bash -c '/usr/bin/kafka-topics --create --topic expedia_ext --replication-factor 3 --partitions 3 --bootstrap-server kafka:9092'
+
+# Stream application deployment
+deploy-stream-app:
+	kubectl apply -f (STREAM_APP_YAML)
+
+# Stream application deletion
+delete-stream-app:
+	kubectl delete -f (STREAM_APP_YAML)
+	
+# Command to access the KSQL command prompt
+ksql-access:
+	kubectl exec -it ksqldb-0 -- ksql
+	
+# Create a stream from expedia_ext topic0
+create_stream:
+	curl -X POST http://localhost:8088/ksql \
+	-H "Content-Type: application/vnd.ksql.v1+json; charset=utf-8" \
+	-d @ksql/create_stream.json
+
+# Create table from stream as select query
+create_table:
+	curl -X POST http://localhost:8088/ksql \
+	-H "Content-Type: application/vnd.ksql.v1+json; charset=utf-8" \
+	-d @ksql/create_table.json
+
+# Retrieve the total number of hotels (hotel_id) and the number of distinct hotels per category
+select_hotels:
+	curl -X POST http://localhost:8088/query \
+	-H "Content-Type: application/vnd.ksql.v1+json; charset=utf-8" \
+	-d @ksql/select_hotels.json
+```
+
+First I uploaded the data's to the container:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make upload-dir
+Makefile:41: warning: overriding recipe for target 'build_con'
+Makefile:33: warning: ignoring old recipe for target 'build_con'
+Makefile:45: warning: overriding recipe for target 'push_con'
+Makefile:37: warning: ignoring old recipe for target 'push_con'
+az storage blob upload-batch \
+        --account-name dev \
+        --destination d \
+        --source . \
+        --pattern "root_cicd/*"
+
+There are no credentials provided in your command and environment, we will query for account key for your storage account.
+It is recommended to provide --connection-string, --account-key or --sas-token in your command as credentials.
+
+You also can add `--auth-mode login` in your command to use Azure Active Directory (Azure AD) for authorization if your login account is assigned required RBAC roles.
+For more information about RBAC roles in storage, visit https://learn.microsoft.com/azure/storage/common/storage-auth-aad-rbac-cli.
+
+In addition, setting the corresponding environment variables can avoid inputting credentials in your command. Please use --help to get more information about environment variable usage.
+Finished[#############################################################]  100.0000%
+[
+  {
+    "Blob": "https://dev.blob.core.windows.net/data/root_cicd/topics/expedia/partition%3D0/expedia%2B0%2B0000000000.avro",
+    "Last Modified": "2025-05-02T17:15:01+00:00",
+    "Type": null,
+    "eTag": "\"0x8DD899CDF4486EC\""
+  },
+  {
+    "Blob": "https://dev.blob.core.windows.net/data/root_cicd/topics/expedia/partition%3D1/expedia%2B1%2B0000000000.avro",
+    "Last Modified": "2025-05-02T17:15:24+00:00",
+    "Type": null,
+    "eTag": "\"0x8DD899CED626A50\""
+  },
+  {
+    "Blob": "https://de.blob.core.windows.net/data/root_cicd/topics/expedia/partition%3D2/expedia%2B2%2B0000000000.avro",
+    "Last Modified": "2025-05-02T17:15:50+00:00",
+    "Type": null,
+    "eTag": "\"0x8DD899CFC9BB4E8\""
+  }
+]
+PS C:\data_eng\házi\7\ci_cd>
+
+```
+
+![cicd_data](https://github.com/user-attachments/assets/6e1f4fa0-4d59-44d1-aad7-c2e0c6bfa068)
+
+
