@@ -2053,3 +2053,27 @@ docker build -t acr.azurecr.io/azure-connector:latest -f connectors/Dockerfile .
 PS C:\data_eng\házi\7\ci_cd>
 ```
 
+Then I pushed the Connector image to the ACR:
+```python
+PS C:\data_eng\házi\7\ci_cd> make push_con
+docker push acr.azurecr.io/azure-connector:latest
+The push refers to repository [acr.azurecr.io/azure-connector]
+186e9837369c: Layer already exists
+da7039bb2113: Layer already exists
+fe36fc382320: Layer already exists
+17fe3a92262f: Layer already exists
+5420596c14ab: Layer already exists
+d00353b5eb83: Pushed
+0e55377ebe37: Layer already exists
+8fba90d6dcbd: Layer already exists
+a266312a92ef: Layer already exists
+c24709eccb2a: Layer already exists
+003d908e509f: Layer already exists
+d389b3791c2e: Layer already exists
+ddfc5620ff70: Layer already exists
+4250354b4fb7: Layer already exists
+c4c5f447179d: Layer already exists
+974e7e336459: Layer already exists
+latest: digest: sha256:029bea512876172a6df04c1f37a8be6af1e9acbeafdf35a5429e8a16b9205ede size: 856
+```
+
