@@ -2077,3 +2077,55 @@ c4c5f447179d: Layer already exists
 latest: digest: sha256:029bea512876172a6df04c1f37a8be6af1e9acbeafdf35a5429e8a16b9205ede size: 856
 ```
 
+Then builded the Stream Application's image:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make build_kstr
+docker build -t ac.azurecr.io/stream-app:latest .
+[+] Building 3.2s (11/11) FINISHED                                                                                                                                                          docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                                                                        0.1s
+ => => transferring dockerfile: 286B                                                                                                                                                                        0.0s
+ => [internal] load metadata for docker.io/library/python:3.9                                                                                                                                               2.7s
+ => [internal] load .dockerignore                                                                                                                                                                           0.0s
+ => => transferring context: 2B                                                                                                                                                                             0.0s
+ => [1/6] FROM docker.io/library/python:3.9@sha256:2b5aeaeccd9b6d8a54541c5f8406cb1d68a09ff9cd7ee7034f2d7d589a40e16c                                                                                         0.0s
+ => => resolve docker.io/library/python:3.9@sha256:2b5aeaeccd9b6d8a54541c5f8406cb1d68a09ff9cd7ee7034f2d7d589a40e16c                                                                                         0.0s
+ => [internal] load build context                                                                                                                                                                           0.0s
+ => => transferring context: 92B                                                                                                                                                                            0.0s
+ => CACHED [2/6] ADD src/main.py /app/main.py                                                                                                                                                               0.0s
+ => CACHED [3/6] ADD requirements.txt /app/requirements.txt                                                                                                                                                 0.0s
+ => CACHED [4/6] WORKDIR /app                                                                                                                                                                               0.0s
+ => CACHED [5/6] RUN apt-get update && apt-get install -y     gcc                                                                                                                                           0.0s
+ => CACHED [6/6] RUN pip3 install -r requirements.txt                                                                                                                                                       0.0s
+ => exporting to image                                                                                                                                                                                      0.2s
+ => => exporting layers                                                                                                                                                                                     0.0s
+ => => exporting manifest sha256:d1647a6a2ac80cb32fe7095ccf6760a077cad57070b84506d62bf2157c930443                                                                                                           0.0s
+ => => exporting config sha256:90927672a3cec7d7ab5fdcb08b61a430f2ebf381b91aefd3c6119b047adc772d                                                                                                             0.0s
+ => => exporting attestation manifest sha256:d00e478b016702d98f91a0c25d37b53dfebf84a7eb8fe3d52ef62ae4448a12e9                                                                                               0.1s
+ => => exporting manifest list sha256:7cbc3c2e39628a7011af1ba91c59ee92f098dbebda0946e3c050a5fb111f779a                                                                                                      0.0s
+ => => naming to ac.azurecr.io/stream-app:latest                                                                                                                                      0.0s
+ => => unpacking to acr.azurecr.io/stream-app:latest    
+```
+
+And I pushed the Stream Application's image to the ACR:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make push_kstr
+docker push acr.azurecr.io/stream-app:latest
+The push refers to repository [ac.azurecr.io/stream-app]
+cf05a52c0235: Layer already exists
+ca513cad200b: Layer already exists
+992bfc873aee: Layer already exists
+27c5ec60c1bf: Pushed
+3b4c279150f1: Layer already exists
+53ac2a08907c: Layer already exists
+c7ee4621ffc6: Layer already exists
+4f4fb700ef54: Layer already exists
+e160e3bbfa68: Layer already exists
+63964a8518f5: Layer already exists
+80b896d41308: Layer already exists
+c187b51b626e: Layer already exists
+c11e4fe34802: Layer already exists
+latest: digest: sha256:7cbc3c2e39628a7011af1ba91c59ee92f098dbebda0946e3c050a5fb111f779a size: 856
+```
+
