@@ -1,0 +1,5 @@
+{
+    "ksql": "CREATE STREAM expedia_stream (id BIGINT, hotel_id BIGINT, stay_category VARCHAR) WITH (KAFKA_TOPIC='expedia_ext', VALUE_FORMAT='JSON');",
+    "streamsProperties": {}
+  }
+  

@@ -1,0 +1,5 @@
+{
+    "ksql": "SELECT * FROM hotels_count EMIT CHANGES;",
+    "streamsProperties": {}
+  }
+  

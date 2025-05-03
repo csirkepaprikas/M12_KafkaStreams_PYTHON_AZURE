@@ -1,0 +1,5 @@
+{
+    "ksql": "CREATE TABLE hotels_count AS SELECT stay_category, COUNT(hotel_id) AS hotels_amount, COUNT_DISTINCT(hotel_id) AS distinct_hotels FROM expedia_stream GROUP BY stay_category;",
+    "streamsProperties": {}
+  }
+  
