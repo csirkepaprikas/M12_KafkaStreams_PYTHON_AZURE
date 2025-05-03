@@ -1882,7 +1882,7 @@ build_con:
 	docker build -t $(FULL_IMAGE_CON) -f connectors/Dockerfile .
 
 # Push con_image to ACR
-push_con: build login
+push_con:
 	docker push $(FULL_IMAGE_CON)
 	
 # Build image_kstr
@@ -1890,7 +1890,7 @@ build_kstr:
 	docker build -t $(FULL_IMAGE_KSTR) .
 
 # Push kstr_image to ACR
-push_kstr: build login
+push_kstr: 
 	docker push $(FULL_IMAGE_KSTR)
 
 
@@ -1917,12 +1917,12 @@ status:
 	
 # Port forward Control Center
 port-forward-controlcenter:
-	Start-Process powershell -WindowStyle Hidden -ArgumentList 'kubectl port-forward controlcenter-0 9021:9021 *> $null'
+	kubectl port-forward controlcenter-0 9021:9021 &
 
 
 # Port forward Kafka Connect
 port-forward-connect:
-	Start-Process powershell -WindowStyle Hidden -ArgumentList 'kubectl port-forward connect-0 8083:8083 *> $null'
+	kubectl port-forward connect-0 8083:8083 &
 
 # Kafka topic creation (expedia)
 create-topic:
@@ -1930,7 +1930,8 @@ create-topic:
 
 # Delete alias
 fix-curl:
-	Remove-Item alias:curl -Force
+	powershell -Command "Remove-Item alias:curl"
+
 
 # Kafka Connect connector upload from JSON file
 upload-connector:
@@ -1942,16 +1943,20 @@ output-topic:
 
 # Stream application deployment
 deploy-stream-app:
-	kubectl apply -f (STREAM_APP_YAML)
+	kubectl apply -f $(STREAM_APP_YAML)
 
 # Stream application deletion
 delete-stream-app:
-	kubectl delete -f (STREAM_APP_YAML)
+	kubectl delete -f $(STREAM_APP_YAML)
 	
 # Command to access the KSQL command prompt
 ksql-access:
 	kubectl exec -it ksqldb-0 -- ksql
 	
+# Port forward for ksqldb:
+port-forward-ksqldb:
+	kubectl port-forward connect-0 8088:8088 &
+
 # Create a stream from expedia_ext topic0
 create_stream:
 	curl -X POST http://localhost:8088/ksql \
@@ -2129,3 +2134,250 @@ c11e4fe34802: Layer already exists
 latest: digest: sha256:7cbc3c2e39628a7011af1ba91c59ee92f098dbebda0946e3c050a5fb111f779a size: 856
 ```
 
+Then I created the Confluent Platform components, producer and topic:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make deploy-confluent
+kubectl apply -f k8s/confluent-platform.yaml
+zookeeper.platform.confluent.io/zookeeper created
+kafka.platform.confluent.io/kafka created
+connect.platform.confluent.io/connect created
+ksqldb.platform.confluent.io/ksqldb created
+controlcenter.platform.confluent.io/controlcenter created
+schemaregistry.platform.confluent.io/schemaregistry created
+PS C:\data_eng\házi\7\ci_cd> make deploy-producer
+kubectl apply -f k8s/producer-app-data.yaml
+secret/kafka-client-config created
+statefulset.apps/elastic created
+service/elastic created
+kafkatopic.platform.confluent.io/elastic-0 created
+```
+
+Then I checked the cluster after 10 minutes:
+
+```python
+NAME                                  READY   STATUS    RESTARTS   AGE     IP             NODE                              NOMINATED NODE   READINESS GATES
+confluent-operator-7bc56ff8bf-m874s   1/1     Running   0          2d20h   10.244.0.4     aks-default-18464414-vmss000000   <none>           <none>
+connect-0                             1/1     Running   0          5m6s    10.244.0.31    aks-default-18464414-vmss000000   <none>           <none>
+controlcenter-0                       1/1     Running   0          2m50s   10.244.0.162   aks-default-18464414-vmss000000   <none>           <none>
+elastic-0                             1/1     Running   0          3m21s   10.244.0.56    aks-default-18464414-vmss000000   <none>           <none>
+kafka-0                               1/1     Running   0          3m51s   10.244.0.47    aks-default-18464414-vmss000000   <none>           <none>
+kafka-1                               1/1     Running   0          3m51s   10.244.0.171   aks-default-18464414-vmss000000   <none>           <none>
+kafka-2                               1/1     Running   0          3m51s   10.244.0.11    aks-default-18464414-vmss000000   <none>           <none>
+ksqldb-0                              1/1     Running   0          2m50s   10.244.0.15    aks-default-18464414-vmss000000   <none>           <none>
+schemaregistry-0                      1/1     Running   0          2m49s   10.244.0.203   aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-0                           1/1     Running   0          5m7s    10.244.0.123   aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-1                           1/1     Running   0          5m7s    10.244.0.241   aks-default-18464414-vmss000000   <none>           <none>
+zookeeper-2                           1/1     Running   0          5m7s    10.244.0.3     aks-default-18464414-vmss000000   <none>           <none>
+```
+
+Then I set up port forwarding to Control Center web UI from local machine:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make port-forward-controlcenter
+kubectl port-forward controlcenter-0 9021:9021 &
+Forwarding from 127.0.0.1:9021 -> 9021
+Forwarding from [::1]:9021 -> 9021
+Handling connection for 9021
+Handling connection for 9021
+Handling connection for 9021
+Handling connection for 9021
+Handling connection for 9021
+Handling connection for 9021
+Handling connection for 9021
+Handling connection for 9021
+Handling connection for 9021
+Handling connection for 9021
+```
+
+And then I checked the GUI:
+
+![ciccd_contcent](https://github.com/user-attachments/assets/de5e26d3-dc5c-409f-9c05-56399298eeda)
+
+Then created a connection for kafka:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make port-forward-connect
+kubectl port-forward connect-0 8083:8083 &
+Forwarding from 127.0.0.1:8083 -> 8083
+Forwarding from [::1]:8083 -> 8083
+```
+
+Then executed below command to create Kafka topic with a name 'expedia':
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make create-topic
+kubectl exec kafka-0 -c kafka -- bash -c "/usr/bin/kafka-topics --create --topic expedia --replication-factor 3 --partitions 3 --bootstrap-server kafka:9092"
+Created topic expedia.
+```
+
+Then I deleted the alias:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make fix-curl
+powershell -Command "Remove-Item alias:curl"
+PS C:\data_eng\házi\7\ci_cd>
+```
+
+I uploaded the connector file through the API:
+
+PS C:\data_eng\házi\7\ci_cd> make upload-connector
+powershell -Command "Invoke-RestMethod -Method Post -Uri http://localhost:8083/connectors -ContentType 'application/json' -Body (Get-Content -Raw -Path azure-source-cc.json)"
+
+```python
+name    config
+----    ------
+expedia @{topics=expedia; bootstrap.servers=kafka:9071; connector.class=io.confluent.connect.azure.blob.storage.Azur...
+```
+
+Then I verified the messages in Kafka GUI, in the Topics/Expedia:
+
+![cicd_messa](https://github.com/user-attachments/assets/ac2de0e5-a33a-4d28-baf9-a5889af4afe2)
+
+I created an output kafka topic:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make output-topic
+kubectl exec kafka-0 -c kafka -- bash -c '/usr/bin/kafka-topics --create --topic expedia_ext --replication-factor 3 --partitions 3 --bootstrap-server kafka:9092'
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic expedia_ext.
+```
+
+Then I deployed Stream application from the image I builded and pushed to the ACR earlier:
+
+```python
+c:\data_eng\házi\7\ci_cd>make deploy-stream-app
+kubectl apply -f k8s/stream-app.yaml
+deployment.apps/kstream-app created
+```
+
+The pod was created successfully:
+
+```python
+c:\data_eng\házi\7\ci_cd>kubectl get pods
+NAME                                  READY   STATUS    RESTARTS   AGE
+confluent-operator-7bc56ff8bf-m874s   1/1     Running   0          2d22h
+connect-0                             1/1     Running   0          73m
+controlcenter-0                       1/1     Running   0          13m
+elastic-0                             1/1     Running   0          71m
+kafka-0                               1/1     Running   0          72m
+kafka-1                               1/1     Running   0          72m
+kafka-2                               1/1     Running   0          6m8s
+ksqldb-0                              1/1     Running   0          71m
+kstream-app-7b74bf575d-xfwvf          1/1     Running   0          43s
+schemaregistry-0                      1/1     Running   0          71m
+zookeeper-0                           1/1     Running   0          73m
+zookeeper-1                           1/1     Running   0          73m
+zookeeper-2                           1/1     Running   0          73m
+```
+
+Then I checked the message in the expedia_ext topic:
+
+![cicd_ext_mess](https://github.com/user-attachments/assets/09ff8fd9-1ec0-438a-ac7a-e97a28abaca9)
+
+I visualized data from Kafka Topic expedia_ext with KSQL. 
+I chose to apply a portforwarding to the ksqldb pod until I execute all the APi calls:
+
+
+First I created a stream from expedia_ext topic:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make create_stream
+curl -X POST http://localhost:8088/ksql \
+-H "Content-Type: application/vnd.ksql.v1+json; charset=utf-8" \
+-d @ksql/create_stream.json
+[{"@type":"currentStatus","statementText":"CREATE STREAM EXPEDIA_STREAM (ID BIGINT, HOTEL_ID BIGINT, STAY_CATEGORY STRING) WITH (CLEANUP_POLICY='delete', KAFKA_TOPIC='expedia_ext', KEY_FORMAT='KAFKA', VALUE_FORMAT='JSON');","commandId":"stream/`EXPEDIA_STREAM`/create","commandStatus":{"status":"SUCCESS","message":"Stream created","queryId":null},"commandSequenceNumber":0,"warnings":[]}]
+```
+
+Then created table from stream as select query:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make create_table
+curl -X POST http://localhost:8088/ksql \
+-H "Content-Type: application/vnd.ksql.v1+json; charset=utf-8" \
+-d @ksql/create_table.json
+[{"@type":"currentStatus","statementText":"CREATE TABLE HOTELS_COUNT WITH (CLEANUP_POLICY='compact', KAFKA_TOPIC='HOTELS_COUNT', PARTITIONS=3, REPLICAS=3, RETENTION_MS=604800000) AS SELECT\n  EXPEDIA_STREAM.STAY_CATEGORY STAY_CATEGORY,\n  COUNT(EXPEDIA_STREAM.HOTEL_ID) HOTELS_AMOUNT,\n  COUNT_DISTINCT(EXPEDIA_STREAM.HOTEL_ID) DISTINCT_HOTELS\nFROM EXPEDIA_STREAM EXPEDIA_STREAM\nGROUP BY EXPEDIA_STREAM.STAY_CATEGORY\nEMIT CHANGES;","commandId":"table/`HOTELS_COUNT`/create","commandStatus":{"status":"SUCCESS","message":"Created query with ID CTAS_HOTELS_COUNT_1","queryId":"CTAS_HOTELS_COUNT_1"},"commandSequenceNumber":2,"warnings":[]}]
+```
+
+Retrieved the total number of hotels (hotel_id) and the number of distinct hotels per category:
+
+```python
+PS C:\data_eng\házi\7\ci_cd> make select_hotels
+curl -X POST http://localhost:8088/query \
+-H "Content-Type: application/vnd.ksql.v1+json; charset=utf-8" \
+-d @ksql/select_hotels.json
+{"queryId":"transient_HOTELS_COUNT_2406405773191826999","columnNames":["STAY_CATEGORY","HOTELS_AMOUNT","DISTINCT_HOTELS"],"columnTypes":["STRING","BIGINT","BIGINT"]}
+["Short stay",21046,2486]
+["Long stay",51,51]
+["Standard stay",2400,1542]
+["Erroneous data",22,22]
+["Standard extended stay",130,126]
+["Long stay",55,55]
+["Standard stay",2514,1582]
+["Short stay",22026,2486]
+["Erroneous data",24,24]
+["Standard extended stay",138,135]
+["Long stay",56,56]
+["Standard stay",2563,1605]
+["Short stay",22799,2486]
+["Erroneous data",27,26]
+["Standard extended stay",142,138]
+["Long stay",58,58]
+["Standard stay",2676,1645]
+["Short stay",23486,2486]
+["Standard extended stay",144,140]
+["Erroneous data",28,27]
+["Long stay",60,60]
+["Standard stay",2809,1688]
+["Short stay",24605,2486]
+["Standard extended stay",155,151]
+["Long stay",63,62]
+["Standard stay",2942,1737]
+["Short stay",25774,2486]
+["Erroneous data",29,28]
+["Standard extended stay",157,152]
+["Short stay",26885,2486]
+["Long stay",68,67]
+["Standard stay",3072,1777]
+["Standard extended stay",164,158]
+["Erroneous data",34,33]
+["Short stay",27877,2486]
+["Long stay",74,72]
+["Standard stay",3159,1802]
+["Erroneous data",36,35]
+["Standard extended stay",169,163]
+["Short stay",28842,2486]
+["Erroneous data",38,37]
+["Standard extended stay",175,169]
+["Long stay",76,74]
+["Standard stay",3240,1822]
+["Short stay",29199,2486]
+["Erroneous data",40,39]
+["Standard extended stay",176,170]
+["Standard stay",3297,1841]
+["Long stay",80,78]
+["Short stay",30071,2486]
+["Erroneous data",41,40]
+["Standard extended stay",182,176]
+["Long stay",82,79]
+["Standard stay",3419,1870]
+["Short stay",31225,2486]
+["Erroneous data",44,43]
+["Standard extended stay",186,179]
+["Long stay",86,83]
+["Standard stay",3536,1899]
+["Short stay",32506,2486]
+["Erroneous data",47,46]
+["Standard extended stay",190,182]
+["Long stay",88,85]
+["Standard stay",3671,1948]
+["Short stay",33616,2486]
+["Standard extended stay",197,189]
+["Erroneous data",48,47]
+["Long stay",91,88]
+["Standard stay",3795,1964]
+```
+
+Finally I checked the Flow chart in the UI:
+
+![cicd_flow](https://github.com/user-attachments/assets/f3c7c252-c864-4489-8f6b-ba01db674029)
