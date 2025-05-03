@@ -1842,7 +1842,7 @@ Then I checked the stream topology in the Flow vizualization:
 
 ### CI/CD
 
-For CI/CD tasks were written in a Makefile - and the realted secrets in the secrets.env file - and the execution was carried out in PowerShell. For stream the stream and table creation and the task query I applied API calls.
+For CI/CD tasks were written in a Makefile - and the realted secrets in the secrets.env file - and the execution was carried out in PowerShell. I made some modifications by the visulazation part, for the external stream topic, table creation and the task query I applied API calls and for the easier access of the ksqldb I used port-forwarding.
 
 The actual Makefile:
 
